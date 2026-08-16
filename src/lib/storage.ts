@@ -26,9 +26,17 @@ const blobEnabled = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 const localRoot = () => process.env.STORAGE_LOCAL_DIR ?? path.join(process.cwd(), ".storage");
 
 function localPath(pathname: string): string {
-  const resolved = path.resolve(localRoot(), pathname);
-  if (!resolved.startsWith(path.resolve(localRoot()))) throw new Error("Invalid storage path");
+  const root = path.resolve(localRoot());
+  const resolved = path.resolve(root, pathname);
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+    throw new Error("Invalid storage path");
+  }
   return resolved;
+}
+
+/** Public reads may only ever resolve to generated previews or avatars. */
+function isPublicPathname(pathname: string): boolean {
+  return /^[^/]+\/(previews|profile)\/[^/]+$/.test(path.posix.normalize(pathname));
 }
 
 export async function putObject(
@@ -59,6 +67,7 @@ export type StoredObject = {
 };
 
 export async function getObject(pathname: string, access: Access): Promise<StoredObject | null> {
+  if (access === "public" && !isPublicPathname(pathname)) return null;
   if (blobEnabled()) {
     const result = await blobGet(pathname, { access });
     if (!result || result.statusCode !== 200) return null;
