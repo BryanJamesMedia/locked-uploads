@@ -37,7 +37,33 @@ export async function provisionSeller(user: { id: string; name: string; email: s
   });
 }
 
+/** Every host the app is reachable on: configured URLs plus Vercel's generated domains. */
+function trustedOrigins(): string[] {
+  const origins = [
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`,
+    process.env.VERCEL_BRANCH_URL && `https://${process.env.VERCEL_BRANCH_URL}`,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
+    "http://localhost:3000",
+  ]
+    .filter((value): value is string => Boolean(value))
+    .map((value) => value.replace(/\/+$/, ""));
+
+  const hosts = origins.flatMap((origin) => {
+    try {
+      const { protocol, host } = new URL(origin);
+      return host.startsWith("www.") ? [origin, `${protocol}//${host.slice(4)}`] : [origin, `${protocol}//www.${host}`];
+    } catch {
+      return [origin];
+    }
+  });
+
+  return [...new Set(hosts)];
+}
+
 export const auth = betterAuth({
+  trustedOrigins: trustedOrigins(),
   database: drizzleAdapter(db, {
     provider: "pg",
     usePlural: true,
