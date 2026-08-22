@@ -5,10 +5,10 @@ import { db } from "@/db";
 import { listings, sellers } from "@/db/schema";
 import { previewUrl } from "@/components/file-tile";
 import { Card } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, listingPath } from "@/lib/utils";
 
-export default async function ProfilePage(props: PageProps<"/[handle]">) {
-  const { handle } = await props.params;
+export default async function ProfilePage(props: PageProps<"/[seller]">) {
+  const { seller: handle } = await props.params;
 
   const [seller] = await db
     .select()
@@ -55,7 +55,7 @@ export default async function ProfilePage(props: PageProps<"/[handle]">) {
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
           {catalogue.map((listing) => (
-            <Link key={listing.id} href={`/l/${listing.slug}`}>
+            <Link key={listing.id} href={listingPath(seller.publicId, listing.slug)}>
               <Card className="p-3 transition-shadow hover:shadow-md">
                 <div className="aspect-square overflow-hidden rounded-lg bg-slate-100">
                   {listing.coverImage ? (

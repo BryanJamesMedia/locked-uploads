@@ -85,6 +85,8 @@ export const sellers = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     handle: text("handle").notNull(),
+    /** Immutable id used in listing URLs, so links survive a handle change. */
+    publicId: text("public_id").notNull(),
     bio: text("bio"),
     email: text("email").notNull(),
     stripeAccountId: text("stripe_account_id"),
@@ -100,7 +102,10 @@ export const sellers = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("sellers_handle_lower_idx").on(t.handle)],
+  (t) => [
+    uniqueIndex("sellers_handle_lower_idx").on(t.handle),
+    uniqueIndex("sellers_public_id_idx").on(t.publicId),
+  ],
 );
 
 /* ------------------------------------------------------------ listings */

@@ -8,7 +8,7 @@ import { listings, sellers } from "@/db/schema";
 import { platformFeeCents } from "@/lib/plans";
 import { completePurchase } from "@/lib/purchase";
 import { isStripeConfigured, stripe } from "@/lib/stripe";
-import { appUrl } from "@/lib/utils";
+import { appUrl, listingPath } from "@/lib/utils";
 
 const emailSchema = z.string().trim().toLowerCase().email("Enter a valid email address");
 
@@ -77,7 +77,7 @@ export async function startCheckout(
     },
     metadata: { listingId: listing.id, buyerEmail, feeCents: String(feeCents) },
     success_url: appUrl("/success?session_id={CHECKOUT_SESSION_ID}"),
-    cancel_url: appUrl(`/l/${listing.slug}`),
+    cancel_url: appUrl(listingPath(seller.publicId, listing.slug)),
   });
 
   if (!session.url) return { error: "Could not start checkout." };

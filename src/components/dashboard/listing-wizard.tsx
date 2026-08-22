@@ -13,7 +13,7 @@ import { FileTile } from "@/components/file-tile";
 import type { FileType, Plan } from "@/db/schema";
 import { ACCEPTED_EXTENSIONS, formatBytes } from "@/lib/files";
 import { PLANS } from "@/lib/plans";
-import { cn } from "@/lib/utils";
+import { cn, listingPath } from "@/lib/utils";
 import {
   createDraftListing,
   deleteListingFile,
@@ -47,11 +47,13 @@ const steps = ["Upload", "Details", "Settings", "Review"] as const;
 export function ListingWizard({
   plan,
   appUrl,
+  sellerPublicId,
   listing: initialListing,
   files: initialFiles,
 }: {
   plan: Plan;
   appUrl: string;
+  sellerPublicId: string;
   listing?: WizardListing;
   files?: WizardFile[];
 }) {
@@ -82,7 +84,7 @@ export function ListingWizard({
 
   const totalBytes = files.reduce((total, file) => total + file.sizeBytes, 0);
   const imageCount = files.filter((file) => file.fileType === "image").length;
-  const shareUrl = `${appUrl}/l/${slug}`;
+  const shareUrl = `${appUrl}${listingPath(sellerPublicId, slug)}`;
 
   const ensureListing = useCallback(async () => {
     if (listingId) return listingId;

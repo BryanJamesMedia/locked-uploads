@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { sellers, users, sessions, accounts, verifications } from "@/db/schema";
 import { sendPasswordResetEmail, sendWelcomeEmail } from "./email";
+import { newSellerPublicId } from "./ids";
 import { slugify } from "./utils";
 
 async function uniqueHandle(base: string): Promise<string> {
@@ -15,6 +16,18 @@ async function uniqueHandle(base: string): Promise<string> {
       .select({ id: sellers.id })
       .from(sellers)
       .where(eq(sellers.handle, candidate))
+      .limit(1);
+    if (existing.length === 0) return candidate;
+  }
+}
+
+async function uniquePublicId(): Promise<string> {
+  for (;;) {
+    const candidate = newSellerPublicId();
+    const existing = await db
+      .select({ id: sellers.id })
+      .from(sellers)
+      .where(eq(sellers.publicId, candidate))
       .limit(1);
     if (existing.length === 0) return candidate;
   }
@@ -33,6 +46,7 @@ export async function provisionSeller(user: { id: string; name: string; email: s
     id: user.id,
     name: user.name || user.email.split("@")[0],
     handle,
+    publicId: await uniquePublicId(),
     email: user.email,
   });
 }
