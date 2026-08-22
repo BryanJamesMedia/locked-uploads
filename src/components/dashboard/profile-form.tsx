@@ -8,6 +8,7 @@ import { Field, Input, Label, Textarea } from "@/components/ui/input";
 import { previewUrl } from "@/components/file-tile";
 import { saveProfile } from "@/app/dashboard/actions";
 import { DEFAULT_PAGE_BACKGROUND } from "@/lib/colors";
+import { MAX_SOCIAL_LINKS } from "@/lib/links";
 
 const PRESETS = [DEFAULT_PAGE_BACKGROUND, "#ffffff", "#0f172a", "#000000", "#fef3c7", "#ecfdf5"];
 
@@ -21,6 +22,7 @@ export function ProfileForm({
     bio: string | null;
     profileImagePathname: string | null;
     pageBackground: string | null;
+    socialLinks: string | null;
   };
   baseUrl: string;
 }) {
@@ -123,6 +125,20 @@ export function ProfileForm({
         </Field>
         <Field label="Bio" htmlFor="bio">
           <Textarea id="bio" name="bio" defaultValue={seller.bio ?? ""} maxLength={280} />
+        </Field>
+
+        <Field
+          label="Links"
+          htmlFor="socialLinks"
+          hint={`One link per line, up to ${MAX_SOCIAL_LINKS}. They appear under your listings.`}
+        >
+          <Textarea
+            id="socialLinks"
+            name="socialLinks"
+            defaultValue={seller.socialLinks ?? ""}
+            placeholder="https://instagram.com/you"
+            spellCheck={false}
+          />
         </Field>
 
         <Field

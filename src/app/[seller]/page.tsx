@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { listings, sellers } from "@/db/schema";
 import { previewUrl } from "@/components/file-tile";
 import { Card } from "@/components/ui/card";
+import { socialLinksOf } from "@/lib/links";
 import { formatCurrency, listingPath } from "@/lib/utils";
 
 export default async function ProfilePage(props: PageProps<"/[seller]">) {
@@ -29,6 +30,8 @@ export default async function ProfilePage(props: PageProps<"/[seller]">) {
       ),
     )
     .orderBy(desc(listings.createdAt));
+
+  const links = socialLinksOf(seller.socialLinks);
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8">
@@ -63,6 +66,25 @@ export default async function ProfilePage(props: PageProps<"/[seller]">) {
           ))}
         </div>
       )}
+
+      {links.length > 0 ? (
+        <Card className="mt-8 bg-slate-100">
+          <ul className="space-y-1.5">
+            {links.map((link) => (
+              <li key={link}>
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="block break-all text-sm text-slate-700 underline underline-offset-2 hover:text-slate-900"
+                >
+                  {link}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
     </main>
   );
 }
