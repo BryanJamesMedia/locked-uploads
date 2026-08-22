@@ -22,6 +22,13 @@
       "when": 1787395805122,
       "tag": "0002_cooing_morlocks",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787398962883,
+      "tag": "0003_slimy_the_hood",
+      "breakpoints": true
     }
   ]
 }

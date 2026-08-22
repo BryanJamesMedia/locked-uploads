@@ -14,6 +14,7 @@ export default async function ProfileSettingsPage() {
           bio: seller.bio,
           profileImagePathname: seller.profileImagePathname,
           pageBackground: seller.pageBackground,
+          socialLinks: seller.socialLinks,
         }}
         baseUrl={appUrl()}
       />

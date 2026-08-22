@@ -98,6 +98,8 @@ export const sellers = pgTable(
     profileImagePathname: text("profile_image_pathname"),
     /** Hex colour behind the seller's public pages; null renders the default. */
     pageBackground: text("page_background"),
+    /** One URL per line, shown as plain links under the seller's catalogue. */
+    socialLinks: text("social_links"),
     publicProfileEnabled: boolean("public_profile_enabled").notNull().default(true),
     emailOnSale: boolean("email_on_sale").notNull().default(true),
     emailOnPayout: boolean("email_on_payout").notNull().default(true),

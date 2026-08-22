@@ -8,6 +8,7 @@ import { fileDownloads, listings, notifications, payouts, sellers } from "@/db/s
 import { sales } from "@/db/schema";
 import { DEFAULT_PAGE_BACKGROUND, normalizeHexColor } from "@/lib/colors";
 import { sendPayoutEmail, sendReissueEmail } from "@/lib/email";
+import { MAX_SOCIAL_LINKS, parseSocialLinks } from "@/lib/links";
 import { TOKEN_TTL_MS } from "@/lib/plans";
 import { newDownloadToken } from "@/lib/purchase";
 import { requireSeller } from "@/lib/session";
@@ -101,6 +102,12 @@ export async function saveProfile(formData: FormData): Promise<ActionResult> {
     return { ok: false, error: "Enter a background colour as a hex value, e.g. #000000." };
   }
 
+  const { links, invalid } = parseSocialLinks(String(formData.get("socialLinks") ?? ""));
+  if (invalid) return { ok: false, error: `"${invalid}" is not a valid link.` };
+  if (links.length > MAX_SOCIAL_LINKS) {
+    return { ok: false, error: `Add at most ${MAX_SOCIAL_LINKS} links.` };
+  }
+
   const clash = await db
     .select({ id: sellers.id })
     .from(sellers)
@@ -117,6 +124,7 @@ export async function saveProfile(formData: FormData): Promise<ActionResult> {
       bio: bio || null,
       handle,
       pageBackground: pageBackground === DEFAULT_PAGE_BACKGROUND ? null : pageBackground,
+      socialLinks: links.length > 0 ? links.join("\n") : null,
     })
     .where(eq(sellers.id, seller.id));
   revalidatePath("/dashboard/profile");
