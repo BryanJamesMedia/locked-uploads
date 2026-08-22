@@ -37,6 +37,7 @@ export default async function EditListingPage(
       <ListingWizard
         plan={seller.plan}
         appUrl={appUrl()}
+        sellerPublicId={seller.publicId}
         listing={{
           id: listing.id,
           title: listing.title,

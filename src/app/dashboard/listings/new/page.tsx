@@ -7,7 +7,7 @@ export default async function NewListingPage() {
   return (
     <div>
       <h1 className="mb-4 text-xl font-semibold text-slate-900">New listing</h1>
-      <ListingWizard plan={seller.plan} appUrl={appUrl()} />
+      <ListingWizard plan={seller.plan} appUrl={appUrl()} sellerPublicId={seller.publicId} />
     </div>
   );
 }

@@ -16,6 +16,11 @@ export function slugify(input: string): string {
   );
 }
 
+/** Listings are addressed by the seller's immutable public id, not their handle. */
+export function listingPath(sellerPublicId: string, slug: string): string {
+  return `/${sellerPublicId}/${slug}`;
+}
+
 export function formatCurrency(amount: number | string): string {
   const value = typeof amount === "string" ? Number(amount) : amount;
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);

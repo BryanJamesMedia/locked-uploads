@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
-import { startCheckout } from "@/app/l/[slug]/actions";
+import { startCheckout } from "@/app/[seller]/[slug]/actions";
 
 export function BuyForm({ slug, price }: { slug: string; price: string }) {
   const [error, setError] = useState<string | null>(null);

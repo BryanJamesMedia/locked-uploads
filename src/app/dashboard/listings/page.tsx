@@ -7,7 +7,7 @@ import { ListingRow } from "@/components/dashboard/listing-row";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/card";
 import { requireSeller } from "@/lib/session";
-import { appUrl } from "@/lib/utils";
+import { appUrl, listingPath } from "@/lib/utils";
 
 export default async function ListingsPage() {
   const seller = await requireSeller();
@@ -42,7 +42,7 @@ export default async function ListingsPage() {
       ) : (
         <div className="space-y-3">
           {rows.map((listing) => (
-            <ListingRow key={listing.id} listing={listing} shareUrl={appUrl(`/l/${listing.slug}`)} />
+            <ListingRow key={listing.id} listing={listing} shareUrl={appUrl(listingPath(seller.publicId, listing.slug))} />
           ))}
         </div>
       )}
