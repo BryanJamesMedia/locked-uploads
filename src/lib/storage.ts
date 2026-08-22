@@ -69,7 +69,8 @@ export type StoredObject = {
 export async function getObject(pathname: string, access: Access): Promise<StoredObject | null> {
   if (access === "public" && !isPublicPathname(pathname)) return null;
   if (blobEnabled()) {
-    const result = await blobGet(pathname, { access });
+    // Uncached: previews are built right after upload, before the CDN has the object.
+    const result = await blobGet(pathname, { access, useCache: false });
     if (!result || result.statusCode !== 200) return null;
     return { stream: result.stream, contentType: result.blob.contentType, size: result.blob.size };
   }

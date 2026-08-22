@@ -91,7 +91,7 @@ export default async function DownloadPage(props: PageProps<"/download/[token]">
           const remaining = DOWNLOADS_PER_FILE - used;
           return (
             <Card key={file.id} className="flex items-center gap-3">
-              <FileTile {...file} className="size-16 shrink-0" />
+              <FileTile {...file} showCaption={false} className="size-16 shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-slate-900">{file.fileName}</p>
                 <p className="text-xs text-slate-500">

@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "@/db";
 import { files, listings, sellers, type FileType, type Plan } from "@/db/schema";
@@ -80,6 +80,72 @@ export function newFileId(): string {
 }
 
 /**
+ * Builds and stores the degraded preview for one image. Returns null (and logs
+ * the reason) if it can't be produced, so a preview failure never blocks an
+ * upload — {@link ensureListingPreviews} retries it later.
+ */
+async function buildPreview(args: {
+  fileId: string;
+  sellerId: string;
+  blobPathname: string;
+  buffer?: Buffer;
+}): Promise<string | null> {
+  const source = args.buffer ?? (await getObjectBuffer(args.blobPathname, "private"));
+  if (!source) {
+    console.error(`[preview] original unreadable for ${args.blobPathname}`);
+    return null;
+  }
+  try {
+    const preview = await generateImagePreview(source);
+    return await putObject(
+      storagePaths.preview(args.sellerId, args.fileId),
+      preview,
+      "image/jpeg",
+      "public",
+    );
+  } catch (error) {
+    console.error(`[preview] generation failed for ${args.blobPathname}`, error);
+    return null;
+  }
+}
+
+/**
+ * Regenerates previews for images that don't have one yet, e.g. uploads whose
+ * preview failed at the time. Safe to call repeatedly.
+ */
+export async function ensureListingPreviews(listingId: string): Promise<number> {
+  const pending = await db
+    .select({
+      id: files.id,
+      sellerId: files.sellerId,
+      blobPathname: files.blobPathname,
+    })
+    .from(files)
+    .where(
+      and(
+        eq(files.listingId, listingId),
+        eq(files.fileType, "image"),
+        isNull(files.previewPathname),
+      ),
+    );
+
+  let repaired = 0;
+  for (const file of pending) {
+    const previewPathname = await buildPreview({
+      fileId: file.id,
+      sellerId: file.sellerId,
+      blobPathname: file.blobPathname,
+    });
+    if (!previewPathname) continue;
+    await db.update(files).set({ previewPathname }).where(eq(files.id, file.id));
+    repaired++;
+  }
+
+  if (repaired > 0) await refreshListingAggregates(listingId);
+  return repaired;
+}
+
+/**
  * Records an uploaded original, generating the irreversible preview for images.
  * `buffer` is optional: when omitted the original is read back from storage,
  * which is only needed to build image previews.
@@ -95,24 +161,7 @@ export async function registerUploadedFile(args: {
   blobPathname: string;
   buffer?: Buffer;
 }): Promise<void> {
-  let previewPathname: string | null = null;
-
-  if (args.fileType === "image") {
-    const source = args.buffer ?? (await getObjectBuffer(args.blobPathname, "private"));
-    if (source) {
-      try {
-        const preview = await generateImagePreview(source);
-        previewPathname = await putObject(
-          storagePaths.preview(args.sellerId, args.fileId),
-          preview,
-          "image/jpeg",
-          "public",
-        );
-      } catch (error) {
-        console.error("[upload] preview generation failed", error);
-      }
-    }
-  }
+  const previewPathname = args.fileType === "image" ? await buildPreview(args) : null;
 
   const [{ sortOrder }] = await db
     .select({ sortOrder: sql<number>`coalesce(max(${files.sortOrder}) + 1, 0)::int` })

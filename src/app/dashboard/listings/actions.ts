@@ -9,7 +9,7 @@ import { files, listings, linkTypes, notifications, visibilities } from "@/db/sc
 import { sendListingPublishedEmail } from "@/lib/email";
 import { requireSeller } from "@/lib/session";
 import { deleteObjects } from "@/lib/storage";
-import { canCreateListing, refreshListingAggregates } from "@/lib/uploads";
+import { canCreateListing, ensureListingPreviews, refreshListingAggregates } from "@/lib/uploads";
 import { appUrl, slugify } from "@/lib/utils";
 
 const detailsSchema = z.object({
@@ -122,6 +122,8 @@ export async function publishListing(
   if (listing.fileCount === 0) return { ok: false, error: "Add at least one file first." };
   if (Number(listing.price) <= 0) return { ok: false, error: "Set a price first." };
 
+  await ensureListingPreviews(listing.id);
+
   await db
     .update(listings)
     .set({ draft: false, updatedAt: new Date() })
@@ -145,6 +147,15 @@ export async function publishListing(
 
   revalidatePath("/dashboard/listings");
   return { ok: true, slug: listing.slug };
+}
+
+/** Rebuilds previews for images that don't have one yet. */
+export async function regenerateListingPreviews(listingId: string): Promise<ActionResult> {
+  const seller = await requireSeller();
+  const listing = await requireOwnedListing(listingId, seller.id);
+  await ensureListingPreviews(listing.id);
+  revalidatePath("/dashboard/listings");
+  return { ok: true };
 }
 
 export async function deleteListingFile(fileId: string): Promise<ActionResult> {
