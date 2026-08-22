@@ -32,23 +32,8 @@ export default async function ProfilePage(props: PageProps<"/[seller]">) {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8">
-      <header className="flex items-center gap-4">
-        <div className="size-16 overflow-hidden rounded-full bg-slate-200">
-          {seller.profileImagePathname ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={previewUrl(seller.profileImagePathname)}
-              alt=""
-              className="size-full object-cover"
-            />
-          ) : null}
-        </div>
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900">{seller.name}</h1>
-          <p className="text-sm text-slate-500">@{seller.handle}</p>
-        </div>
-      </header>
-      {seller.bio ? <p className="mt-4 text-sm text-slate-600">{seller.bio}</p> : null}
+      <h1 className="text-xl font-semibold text-slate-900">{seller.name}</h1>
+      {seller.bio ? <p className="mt-2 text-sm text-slate-600">{seller.bio}</p> : null}
 
       {catalogue.length === 0 ? (
         <p className="mt-8 text-sm text-slate-500">Nothing for sale right now.</p>

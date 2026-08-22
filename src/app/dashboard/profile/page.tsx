@@ -8,7 +8,13 @@ export default async function ProfileSettingsPage() {
     <div>
       <h1 className="mb-4 text-xl font-semibold text-slate-900">Profile</h1>
       <ProfileForm
-        seller={{ name: seller.name, handle: seller.handle, bio: seller.bio }}
+        seller={{
+          name: seller.name,
+          handle: seller.handle,
+          bio: seller.bio,
+          profileImagePathname: seller.profileImagePathname,
+          pageBackground: seller.pageBackground,
+        }}
         baseUrl={appUrl()}
       />
     </div>

@@ -96,6 +96,8 @@ export const sellers = pgTable(
     balance: numeric("balance", { precision: 12, scale: 2 }).notNull().default("0"),
     rating: numeric("rating", { precision: 3, scale: 2 }),
     profileImagePathname: text("profile_image_pathname"),
+    /** Hex colour behind the seller's public pages; null renders the default. */
+    pageBackground: text("page_background"),
     publicProfileEnabled: boolean("public_profile_enabled").notNull().default(true),
     emailOnSale: boolean("email_on_sale").notNull().default(true),
     emailOnPayout: boolean("email_on_payout").notNull().default(true),

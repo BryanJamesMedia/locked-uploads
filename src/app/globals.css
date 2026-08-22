@@ -8,3 +8,17 @@
 body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
+
+/*
+ * A seller can set any background colour on their public pages, so the slate
+ * text palette is lifted to a light one over dark colours. Cards keep their
+ * own white surface and are excluded.
+ */
+[data-surface="dark"] {
+  color: #e2e8f0;
+}
+
+[data-surface="dark"]
+  :is(h1, h2, h3, p, li, span, a, figcaption):not(:where(.card-surface, .card-surface *)) {
+  color: inherit;
+}
