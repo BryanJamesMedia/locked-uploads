@@ -5,11 +5,12 @@ import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { db } from "@/db";
-import { files, listings, linkTypes, visibilities } from "@/db/schema";
+import { files, listings, linkTypes, notifications, visibilities } from "@/db/schema";
+import { sendListingPublishedEmail } from "@/lib/email";
 import { requireSeller } from "@/lib/session";
 import { deleteObjects } from "@/lib/storage";
 import { canCreateListing, refreshListingAggregates } from "@/lib/uploads";
-import { slugify } from "@/lib/utils";
+import { appUrl, slugify } from "@/lib/utils";
 
 const detailsSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(120),
@@ -125,6 +126,22 @@ export async function publishListing(
     .update(listings)
     .set({ draft: false, updatedAt: new Date() })
     .where(eq(listings.id, listingId));
+
+  if (listing.draft) {
+    await db.insert(notifications).values({
+      id: nanoid(16),
+      sellerId: seller.id,
+      type: "system",
+      text: `${listing.title} is live at /l/${listing.slug}.`,
+    });
+    void sendListingPublishedEmail({
+      to: seller.email,
+      listingTitle: listing.title,
+      price: listing.price,
+      listingUrl: appUrl(`/l/${listing.slug}`),
+      isPublic: listing.visibility === "public",
+    });
+  }
 
   revalidatePath("/dashboard/listings");
   return { ok: true, slug: listing.slug };

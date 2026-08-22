@@ -53,6 +53,30 @@ export function sendPasswordResetEmail(to: string, url: string) {
   );
 }
 
+export function sendListingPublishedEmail(args: {
+  to: string;
+  listingTitle: string;
+  price: string;
+  listingUrl: string;
+  isPublic: boolean;
+}) {
+  return send(
+    args.to,
+    `Your listing is live: ${args.listingTitle}`,
+    layout(
+      `<h1 style="font-size:20px">Your listing is live</h1>
+       <p><strong>${args.listingTitle}</strong> is published at ${formatCurrency(args.price)}.</p>
+       <p>${
+         args.isPublic
+           ? "It appears on your public profile, and anyone with the link can buy it."
+           : "It is private, so only people you send the link to can see it."
+       }</p>
+       ${button(args.listingUrl, "View listing")}
+       <p style="font-size:13px;color:#64748b">${args.listingUrl}</p>`,
+    ),
+  );
+}
+
 export function sendPurchaseEmail(args: {
   to: string;
   listingTitle: string;
