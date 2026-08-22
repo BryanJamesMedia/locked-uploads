@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { previewUrl } from "@/components/file-tile";
 import { Badge, Card } from "@/components/ui/card";
@@ -11,7 +11,11 @@ import { Button } from "@/components/ui/button";
 import type { listings } from "@/db/schema";
 import { formatBytes } from "@/lib/files";
 import { formatCurrency } from "@/lib/utils";
-import { deleteListing, toggleListingVisibility } from "@/app/dashboard/listings/actions";
+import {
+  deleteListing,
+  regenerateListingPreviews,
+  toggleListingVisibility,
+} from "@/app/dashboard/listings/actions";
 
 type Listing = typeof listings.$inferSelect;
 
@@ -59,6 +63,18 @@ export function ListingRow({ listing, shareUrl }: { listing: Listing; shareUrl: 
         <p className="font-semibold text-slate-900">{formatCurrency(listing.price)}</p>
         <div className="flex gap-1">
           <CopyLinkButton url={shareUrl} label="" size="sm" variant="ghost" />
+          {listing.coverImage ? null : (
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={busy}
+              aria-label="Rebuild blurred previews"
+              title="Rebuild blurred previews"
+              onClick={() => void run(() => regenerateListingPreviews(listing.id))}
+            >
+              <RefreshCw className="size-4" />
+            </Button>
+          )}
           <Link href={`/dashboard/listings/${listing.id}/edit`}>
             <Button size="sm" variant="ghost" aria-label="Edit listing">
               <Pencil className="size-4" />
