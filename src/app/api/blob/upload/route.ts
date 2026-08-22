@@ -79,7 +79,7 @@ export async function POST(request: Request): Promise<Response> {
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
         const payload = JSON.parse(tokenPayload ?? "{}") as Payload;
-        await registerUploadedFile({
+        const { previewError } = await registerUploadedFile({
           fileId: payload.fileId,
           listingId: payload.listingId,
           sellerId: payload.sellerId,
@@ -89,6 +89,9 @@ export async function POST(request: Request): Promise<Response> {
           fileType: payload.fileType,
           blobPathname: blob.pathname,
         });
+        // The client upload is already committed, so a preview failure is only
+        // reported here; the seller rebuilds it from the listing row.
+        if (previewError) console.error(`[preview] ${payload.fileId} — ${previewError}`);
       },
     });
 

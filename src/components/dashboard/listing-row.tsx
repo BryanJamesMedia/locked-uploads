@@ -63,18 +63,16 @@ export function ListingRow({ listing, shareUrl }: { listing: Listing; shareUrl: 
         <p className="font-semibold text-slate-900">{formatCurrency(listing.price)}</p>
         <div className="flex gap-1">
           <CopyLinkButton url={shareUrl} label="" size="sm" variant="ghost" />
-          {listing.coverImage ? null : (
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={busy}
-              aria-label="Rebuild blurred previews"
-              title="Rebuild blurred previews"
-              onClick={() => void run(() => regenerateListingPreviews(listing.id))}
-            >
-              <RefreshCw className="size-4" />
-            </Button>
-          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy}
+            aria-label="Rebuild blurred previews"
+            title="Rebuild blurred previews"
+            onClick={() => void run(() => regenerateListingPreviews(listing.id))}
+          >
+            <RefreshCw className="size-4" />
+          </Button>
           <Link href={`/dashboard/listings/${listing.id}/edit`}>
             <Button size="sm" variant="ghost" aria-label="Edit listing">
               <Pencil className="size-4" />

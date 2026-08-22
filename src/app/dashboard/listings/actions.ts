@@ -153,8 +153,9 @@ export async function publishListing(
 export async function regenerateListingPreviews(listingId: string): Promise<ActionResult> {
   const seller = await requireSeller();
   const listing = await requireOwnedListing(listingId, seller.id);
-  await ensureListingPreviews(listing.id);
+  const { repaired, error } = await ensureListingPreviews(listing.id);
   revalidatePath("/dashboard/listings");
+  if (repaired === 0 && error) return { ok: false, error: `Preview rebuild failed — ${error}` };
   return { ok: true };
 }
 
