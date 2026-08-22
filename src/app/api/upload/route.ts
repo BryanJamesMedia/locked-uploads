@@ -47,7 +47,7 @@ export async function POST(request: Request) {
     "private",
   );
 
-  await registerUploadedFile({
+  const { previewError } = await registerUploadedFile({
     fileId,
     listingId,
     sellerId: seller.id,
@@ -59,5 +59,10 @@ export async function POST(request: Request) {
     buffer,
   });
 
-  return Response.json({ id: fileId, fileName: candidate.fileName, fileType: check.fileType });
+  return Response.json({
+    id: fileId,
+    fileName: candidate.fileName,
+    fileType: check.fileType,
+    previewError,
+  });
 }

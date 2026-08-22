@@ -92,7 +92,8 @@ export function ListingWizard({
     return result.id;
   }, [listingId]);
 
-  async function uploadOne(file: File, targetListingId: string) {
+  /** Returns the reason the blurred preview could not be built, if any. */
+  async function uploadOne(file: File, targetListingId: string): Promise<string | undefined> {
     if (process.env.NEXT_PUBLIC_UPLOAD_MODE === "blob") {
       const fileId = nanoid(16);
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-120);
@@ -108,17 +109,19 @@ export function ListingWizard({
           sizeBytes: file.size,
         }),
       });
-      return;
+      return undefined;
     }
 
     const body = new FormData();
     body.set("listingId", targetListingId);
     body.set("file", file);
     const response = await fetch("/api/upload", { method: "POST", body });
-    if (!response.ok) {
-      const payload = (await response.json().catch(() => ({}))) as { error?: string };
-      throw new Error(payload.error ?? `Could not upload ${file.name}`);
-    }
+    const payload = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      previewError?: string;
+    };
+    if (!response.ok) throw new Error(payload.error ?? `Could not upload ${file.name}`);
+    return payload.previewError;
   }
 
   // Uploads run one at a time so preview generation stays stable.
@@ -136,7 +139,10 @@ export function ListingWizard({
     for (const file of Array.from(selected)) {
       setUploading((current) => [...current, file.name]);
       try {
-        await uploadOne(file, targetListingId);
+        const previewError = await uploadOne(file, targetListingId);
+        if (previewError) {
+          setError(`Blurred preview not generated for ${file.name} — ${previewError}`);
+        }
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : `Could not upload ${file.name}`);
       } finally {

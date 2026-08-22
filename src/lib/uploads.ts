@@ -79,41 +79,61 @@ export function newFileId(): string {
   return nanoid(16);
 }
 
+export type PreviewResult = { pathname: string } | { error: string };
+
 /**
- * Builds and stores the degraded preview for one image. Returns null (and logs
- * the reason) if it can't be produced, so a preview failure never blocks an
- * upload — {@link ensureListingPreviews} retries it later.
+ * Builds and stores the degraded preview for one image. Reports the reason it
+ * failed rather than throwing, so a preview failure never blocks an upload —
+ * {@link ensureListingPreviews} retries it later.
  */
 async function buildPreview(args: {
   fileId: string;
   sellerId: string;
   blobPathname: string;
   buffer?: Buffer;
-}): Promise<string | null> {
-  const source = args.buffer ?? (await getObjectBuffer(args.blobPathname, "private"));
-  if (!source) {
-    console.error(`[preview] original unreadable for ${args.blobPathname}`);
-    return null;
-  }
+}): Promise<PreviewResult> {
+  let source: Buffer | null;
   try {
-    const preview = await generateImagePreview(source);
-    return await putObject(
+    source = args.buffer ?? (await getObjectBuffer(args.blobPathname, "private"));
+  } catch (error) {
+    return fail(args.blobPathname, "reading the original failed", error);
+  }
+  if (!source) return fail(args.blobPathname, "the original could not be read back");
+
+  let preview: Buffer;
+  try {
+    preview = await generateImagePreview(source);
+  } catch (error) {
+    return fail(args.blobPathname, "image processing failed", error);
+  }
+
+  try {
+    const pathname = await putObject(
       storagePaths.preview(args.sellerId, args.fileId),
       preview,
       "image/jpeg",
       "public",
     );
+    return { pathname };
   } catch (error) {
-    console.error(`[preview] generation failed for ${args.blobPathname}`, error);
-    return null;
+    return fail(args.blobPathname, "storing the preview failed", error);
   }
+}
+
+function fail(blobPathname: string, stage: string, cause?: unknown): { error: string } {
+  const detail = cause instanceof Error ? `: ${cause.name}: ${cause.message}` : "";
+  const error = `${stage}${detail}`;
+  console.error(`[preview] ${blobPathname} — ${error}`, cause);
+  return { error };
 }
 
 /**
  * Regenerates previews for images that don't have one yet, e.g. uploads whose
  * preview failed at the time. Safe to call repeatedly.
  */
-export async function ensureListingPreviews(listingId: string): Promise<number> {
+export async function ensureListingPreviews(
+  listingId: string,
+): Promise<{ repaired: number; error?: string }> {
   const pending = await db
     .select({
       id: files.id,
@@ -130,19 +150,23 @@ export async function ensureListingPreviews(listingId: string): Promise<number> 
     );
 
   let repaired = 0;
+  let error: string | undefined;
   for (const file of pending) {
-    const previewPathname = await buildPreview({
+    const result = await buildPreview({
       fileId: file.id,
       sellerId: file.sellerId,
       blobPathname: file.blobPathname,
     });
-    if (!previewPathname) continue;
-    await db.update(files).set({ previewPathname }).where(eq(files.id, file.id));
+    if ("error" in result) {
+      error ??= result.error;
+      continue;
+    }
+    await db.update(files).set({ previewPathname: result.pathname }).where(eq(files.id, file.id));
     repaired++;
   }
 
   if (repaired > 0) await refreshListingAggregates(listingId);
-  return repaired;
+  return { repaired, error };
 }
 
 /**
@@ -160,8 +184,9 @@ export async function registerUploadedFile(args: {
   fileType: FileType;
   blobPathname: string;
   buffer?: Buffer;
-}): Promise<void> {
-  const previewPathname = args.fileType === "image" ? await buildPreview(args) : null;
+}): Promise<{ previewError?: string }> {
+  const preview = args.fileType === "image" ? await buildPreview(args) : null;
+  const previewPathname = preview && "pathname" in preview ? preview.pathname : null;
 
   const [{ sortOrder }] = await db
     .select({ sortOrder: sql<number>`coalesce(max(${files.sortOrder}) + 1, 0)::int` })
@@ -182,6 +207,7 @@ export async function registerUploadedFile(args: {
   });
 
   await refreshListingAggregates(args.listingId);
+  return { previewError: preview && "error" in preview ? preview.error : undefined };
 }
 
 /** Recomputes file count, total size and cover image from the listing's files. */
