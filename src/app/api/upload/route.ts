@@ -44,7 +44,6 @@ export async function POST(request: Request) {
     storagePaths.original(seller.id, fileId, candidate.fileName),
     buffer,
     candidate.mimeType,
-    "private",
   );
 
   const { previewError } = await registerUploadedFile({
