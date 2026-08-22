@@ -112,7 +112,6 @@ async function buildPreview(args: {
       storagePaths.preview(args.sellerId, args.fileId),
       preview,
       "image/jpeg",
-      "public",
     );
     return { pathname };
   } catch (error) {

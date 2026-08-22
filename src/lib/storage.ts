@@ -4,6 +4,11 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { del as blobDel, get as blobGet, put as blobPut } from "@vercel/blob";
 
+/**
+ * Whether an object may be served without an authorization check. This is the
+ * app's own rule, independent of the blob store's access mode: previews are
+ * always streamed through /api/preview, never linked to directly.
+ */
 export type Access = "public" | "private";
 
 /**
@@ -23,6 +28,14 @@ function sanitize(fileName: string): string {
 }
 
 const blobEnabled = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+
+/**
+ * A blob store is created as either public or private and rejects operations
+ * using the other mode, so every read and write has to use the store's own
+ * setting. Defaults to private, which keeps originals unreachable by URL.
+ */
+const blobAccess = (): "public" | "private" =>
+  process.env.BLOB_STORE_ACCESS === "public" ? "public" : "private";
 const localRoot = () => process.env.STORAGE_LOCAL_DIR ?? path.join(process.cwd(), ".storage");
 
 function localPath(pathname: string): string {
@@ -43,11 +56,10 @@ export async function putObject(
   pathname: string,
   body: Buffer,
   contentType: string,
-  access: Access,
 ): Promise<string> {
   if (blobEnabled()) {
     await blobPut(pathname, body, {
-      access,
+      access: blobAccess(),
       contentType,
       addRandomSuffix: false,
       allowOverwrite: true,
@@ -70,7 +82,7 @@ export async function getObject(pathname: string, access: Access): Promise<Store
   if (access === "public" && !isPublicPathname(pathname)) return null;
   if (blobEnabled()) {
     // Uncached: previews are built right after upload, before the CDN has the object.
-    const result = await blobGet(pathname, { access, useCache: false });
+    const result = await blobGet(pathname, { access: blobAccess(), useCache: false });
     if (!result || result.statusCode !== 200) return null;
     return { stream: result.stream, contentType: result.blob.contentType, size: result.blob.size };
   }
