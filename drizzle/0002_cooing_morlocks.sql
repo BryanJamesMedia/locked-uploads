@@ -1,0 +1,1 @@
+ALTER TABLE "sellers" ADD COLUMN "page_background" text;

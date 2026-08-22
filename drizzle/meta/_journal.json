@@ -15,6 +15,13 @@
       "when": 1787392380280,
       "tag": "0001_slippery_naoko",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787395805122,
+      "tag": "0002_cooing_morlocks",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, eq, or, sql } from "drizzle-orm";
 import { Lock, ShieldCheck, Timer } from "lucide-react";
@@ -15,7 +14,7 @@ export default async function ListingPage(props: PageProps<"/[seller]/[slug]">) 
   const { seller: sellerRef, slug } = await props.params;
 
   const [row] = await db
-    .select({ listing: listings, seller: sellers })
+    .select({ listing: listings })
     .from(listings)
     .innerJoin(sellers, eq(sellers.id, listings.sellerId))
     .where(
@@ -31,7 +30,7 @@ export default async function ListingPage(props: PageProps<"/[seller]/[slug]">) 
     .limit(1);
   if (!row) notFound();
 
-  const { listing, seller } = row;
+  const { listing } = row;
 
   // Only preview paths are selected: originals never reach the public page.
   const listingFiles = await db
@@ -50,16 +49,7 @@ export default async function ListingPage(props: PageProps<"/[seller]/[slug]">) 
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
-      <p className="text-sm text-slate-500">
-        {seller.publicProfileEnabled ? (
-          <Link href={`/${seller.handle}`} className="hover:text-slate-900">
-            {seller.name}
-          </Link>
-        ) : (
-          seller.name
-        )}
-      </p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{listing.title}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{listing.title}</h1>
       {listing.description ? (
         <p className="mt-2 whitespace-pre-line text-sm text-slate-600">{listing.description}</p>
       ) : null}

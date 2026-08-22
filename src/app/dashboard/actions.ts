@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { db } from "@/db";
 import { fileDownloads, listings, notifications, payouts, sellers } from "@/db/schema";
 import { sales } from "@/db/schema";
+import { DEFAULT_PAGE_BACKGROUND, normalizeHexColor } from "@/lib/colors";
 import { sendPayoutEmail, sendReissueEmail } from "@/lib/email";
 import { TOKEN_TTL_MS } from "@/lib/plans";
 import { newDownloadToken } from "@/lib/purchase";
@@ -92,8 +93,13 @@ export async function saveProfile(formData: FormData): Promise<ActionResult> {
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9-]/g, "-");
+  const backgroundInput = String(formData.get("pageBackground") ?? "").trim();
+  const pageBackground = backgroundInput ? normalizeHexColor(backgroundInput) : null;
   if (name.length < 2) return { ok: false, error: "Enter your display name." };
   if (handle.length < 3) return { ok: false, error: "Handle must be at least 3 characters." };
+  if (backgroundInput && !pageBackground) {
+    return { ok: false, error: "Enter a background colour as a hex value, e.g. #000000." };
+  }
 
   const clash = await db
     .select({ id: sellers.id })
@@ -106,9 +112,15 @@ export async function saveProfile(formData: FormData): Promise<ActionResult> {
 
   await db
     .update(sellers)
-    .set({ name, bio: bio || null, handle })
+    .set({
+      name,
+      bio: bio || null,
+      handle,
+      pageBackground: pageBackground === DEFAULT_PAGE_BACKGROUND ? null : pageBackground,
+    })
     .where(eq(sellers.id, seller.id));
   revalidatePath("/dashboard/profile");
+  revalidatePath(`/${handle}`);
   return { ok: true };
 }
 
