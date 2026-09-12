@@ -16,10 +16,10 @@ export function normalizeLink(value: string): string | null {
   return url.toString();
 }
 
-/** Splits the textarea value; the first unusable line is reported back. */
-export function parseSocialLinks(value: string): { links: string[]; invalid: string | null } {
+/** Normalizes one entry per line or per field; the first unusable one is reported back. */
+export function parseSocialLinks(values: string[]): { links: string[]; invalid: string | null } {
   const links: string[] = [];
-  for (const line of value.split("\n")) {
+  for (const line of values.flatMap((value) => value.split("\n"))) {
     if (!line.trim()) continue;
     const link = normalizeLink(line);
     if (!link) return { links, invalid: line.trim() };
