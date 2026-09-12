@@ -12,6 +12,12 @@ import { MAX_SOCIAL_LINKS } from "@/lib/links";
 
 const PRESETS = [DEFAULT_PAGE_BACKGROUND, "#ffffff", "#0f172a", "#000000", "#fef3c7", "#ecfdf5"];
 
+/** Saved links plus a trailing blank field to add the next one. */
+function linkFields(stored: string | null): string[] {
+  const saved = (stored ?? "").split("\n").filter((line) => line.trim().length > 0);
+  return saved.length < MAX_SOCIAL_LINKS ? [...saved, ""] : saved;
+}
+
 export function ProfileForm({
   seller,
   baseUrl,
@@ -32,6 +38,7 @@ export function ProfileForm({
   const [background, setBackground] = useState(seller.pageBackground ?? DEFAULT_PAGE_BACKGROUND);
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [links, setLinks] = useState(() => linkFields(seller.socialLinks));
   const [pending, startTransition] = useTransition();
 
   async function sendImage(body: FormData | null) {
@@ -108,6 +115,7 @@ export function ProfileForm({
         action={(formData) =>
           startTransition(async () => {
             const result = await saveProfile(formData);
+            if (result.ok) setLinks(linkFields(links.join("\n")));
             setMessage(
               result.ok
                 ? { tone: "ok", text: "Profile saved." }
@@ -129,16 +137,43 @@ export function ProfileForm({
 
         <Field
           label="Links"
-          htmlFor="socialLinks"
-          hint={`One link per line, up to ${MAX_SOCIAL_LINKS}. They appear under your listings.`}
+          htmlFor="socialLinks-0"
+          hint={`One link per field, up to ${MAX_SOCIAL_LINKS}. They appear under your listings.`}
         >
-          <Textarea
-            id="socialLinks"
-            name="socialLinks"
-            defaultValue={seller.socialLinks ?? ""}
-            placeholder="https://instagram.com/you"
-            spellCheck={false}
-          />
+          <div className="flex flex-col gap-2">
+            {links.map((link, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Input
+                  id={`socialLinks-${index}`}
+                  name="socialLinks"
+                  value={link}
+                  placeholder="https://instagram.com/you"
+                  spellCheck={false}
+                  onChange={(event) => {
+                    const next = links.map((value, at) =>
+                      at === index ? event.target.value : value,
+                    );
+                    const last = next[next.length - 1];
+                    if (last.trim() && next.length < MAX_SOCIAL_LINKS) next.push("");
+                    setLinks(next);
+                  }}
+                />
+                {links.length > 1 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    aria-label={`Remove link ${index + 1}`}
+                    onClick={() => {
+                      const next = links.filter((_, at) => at !== index);
+                      setLinks(next.length > 0 ? next : [""]);
+                    }}
+                  >
+                    Remove
+                  </Button>
+                ) : null}
+              </div>
+            ))}
+          </div>
         </Field>
 
         <Field

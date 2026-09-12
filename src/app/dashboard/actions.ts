@@ -102,7 +102,9 @@ export async function saveProfile(formData: FormData): Promise<ActionResult> {
     return { ok: false, error: "Enter a background colour as a hex value, e.g. #000000." };
   }
 
-  const { links, invalid } = parseSocialLinks(String(formData.get("socialLinks") ?? ""));
+  const { links, invalid } = parseSocialLinks(
+    formData.getAll("socialLinks").map((value) => String(value)),
+  );
   if (invalid) return { ok: false, error: `"${invalid}" is not a valid link.` };
   if (links.length > MAX_SOCIAL_LINKS) {
     return { ok: false, error: `Add at most ${MAX_SOCIAL_LINKS} links.` };
