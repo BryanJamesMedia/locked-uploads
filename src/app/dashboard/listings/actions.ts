@@ -167,16 +167,6 @@ export async function publishListing(
   return { ok: true, slug: listing.slug };
 }
 
-/** Rebuilds previews for images that don't have one yet. */
-export async function regenerateListingPreviews(listingId: string): Promise<ActionResult> {
-  const seller = await requireSeller();
-  const listing = await requireOwnedListing(listingId, seller.id);
-  const { repaired, error } = await ensureListingPreviews(listing.id);
-  revalidatePath("/dashboard/listings");
-  if (repaired === 0 && error) return { ok: false, error: `Preview rebuild failed — ${error}` };
-  return { ok: true };
-}
-
 export async function deleteListingFile(fileId: string): Promise<ActionResult> {
   const seller = await requireSeller();
   const [file] = await db

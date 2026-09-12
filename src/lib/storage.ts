@@ -19,8 +19,12 @@ export type Access = "public" | "private";
 export const storagePaths = {
   original: (sellerId: string, fileId: string, fileName: string) =>
     `${sellerId}/files/${fileId}-${sanitize(fileName)}`,
-  preview: (sellerId: string, fileId: string) => `${sellerId}/previews/${fileId}.jpg`,
-  avatar: (sellerId: string, fileName: string) => `${sellerId}/profile/${sanitize(fileName)}`,
+  preview: (sellerId: string, fileId: string) =>
+    `${sellerId}/previews/${fileId}.jpg`,
+  avatar: (sellerId: string, fileName: string) =>
+    `${sellerId}/profile/${sanitize(fileName)}`,
+  pageImage: (sellerId: string, fileName: string) =>
+    `${sellerId}/profile/bg-${sanitize(fileName)}`,
 };
 
 function sanitize(fileName: string): string {
@@ -36,7 +40,8 @@ const blobEnabled = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
  */
 const blobAccess = (): "public" | "private" =>
   process.env.BLOB_STORE_ACCESS === "public" ? "public" : "private";
-const localRoot = () => process.env.STORAGE_LOCAL_DIR ?? path.join(process.cwd(), ".storage");
+const localRoot = () =>
+  process.env.STORAGE_LOCAL_DIR ?? path.join(process.cwd(), ".storage");
 
 function localPath(pathname: string): string {
   const root = path.resolve(localRoot());
@@ -49,7 +54,9 @@ function localPath(pathname: string): string {
 
 /** Public reads may only ever resolve to generated previews or avatars. */
 function isPublicPathname(pathname: string): boolean {
-  return /^[^/]+\/(previews|profile)\/[^/]+$/.test(path.posix.normalize(pathname));
+  return /^[^/]+\/(previews|profile)\/[^/]+$/.test(
+    path.posix.normalize(pathname),
+  );
 }
 
 export async function putObject(
@@ -78,25 +85,40 @@ export type StoredObject = {
   size: number | null;
 };
 
-export async function getObject(pathname: string, access: Access): Promise<StoredObject | null> {
+export async function getObject(
+  pathname: string,
+  access: Access,
+): Promise<StoredObject | null> {
   if (access === "public" && !isPublicPathname(pathname)) return null;
   if (blobEnabled()) {
     // Uncached: previews are built right after upload, before the CDN has the object.
-    const result = await blobGet(pathname, { access: blobAccess(), useCache: false });
+    const result = await blobGet(pathname, {
+      access: blobAccess(),
+      useCache: false,
+    });
     if (!result || result.statusCode !== 200) return null;
-    return { stream: result.stream, contentType: result.blob.contentType, size: result.blob.size };
+    return {
+      stream: result.stream,
+      contentType: result.blob.contentType,
+      size: result.blob.size,
+    };
   }
   const target = localPath(pathname);
   if (!existsSync(target)) return null;
   const info = await stat(target);
   return {
-    stream: Readable.toWeb(createReadStream(target)) as ReadableStream<Uint8Array>,
+    stream: Readable.toWeb(
+      createReadStream(target),
+    ) as ReadableStream<Uint8Array>,
     contentType: null,
     size: info.size,
   };
 }
 
-export async function getObjectBuffer(pathname: string, access: Access): Promise<Buffer | null> {
+export async function getObjectBuffer(
+  pathname: string,
+  access: Access,
+): Promise<Buffer | null> {
   const object = await getObject(pathname, access);
   if (!object) return null;
   const chunks: Uint8Array[] = [];
@@ -112,10 +134,14 @@ export async function getObjectBuffer(pathname: string, access: Access): Promise
 export async function deleteObjects(pathnames: string[]): Promise<void> {
   if (pathnames.length === 0) return;
   if (blobEnabled()) {
-    await blobDel(pathnames).catch((error) => console.error("[storage] delete failed", error));
+    await blobDel(pathnames).catch((error) =>
+      console.error("[storage] delete failed", error),
+    );
     return;
   }
   await Promise.all(
-    pathnames.map((pathname) => rm(localPath(pathname), { force: true }).catch(() => undefined)),
+    pathnames.map((pathname) =>
+      rm(localPath(pathname), { force: true }).catch(() => undefined),
+    ),
   );
 }

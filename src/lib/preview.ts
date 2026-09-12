@@ -10,6 +10,7 @@ const PREVIEW_BLUR = 1.5;
 const PREVIEW_OUTPUT_LONG_EDGE = 640;
 
 const AVATAR_EDGE = 512;
+const PAGE_BACKGROUND_LONG_EDGE = 2000;
 
 /** Avatars are served publicly, so they are re-encoded and stripped of metadata. */
 export async function generateAvatar(original: Buffer): Promise<Buffer> {
@@ -17,6 +18,18 @@ export async function generateAvatar(original: Buffer): Promise<Buffer> {
     .rotate()
     .resize(AVATAR_EDGE, AVATAR_EDGE, { fit: "cover", position: "attention" })
     .jpeg({ quality: 85 })
+    .toBuffer();
+}
+
+/** Page backgrounds are served publicly, re-encoded and capped in size. */
+export async function generatePageBackground(original: Buffer): Promise<Buffer> {
+  return sharp(original, { failOn: "none" })
+    .rotate()
+    .resize(PAGE_BACKGROUND_LONG_EDGE, PAGE_BACKGROUND_LONG_EDGE, {
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 80 })
     .toBuffer();
 }
 

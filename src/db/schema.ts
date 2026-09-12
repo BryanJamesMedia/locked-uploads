@@ -19,6 +19,8 @@ export type FileType = (typeof fileTypes)[number];
 export const linkTypes = ["permanent", "single_use", "limited"] as const;
 export type LinkType = (typeof linkTypes)[number];
 export const visibilities = ["public", "private"] as const;
+export const textTones = ["light", "dark"] as const;
+export type TextTone = (typeof textTones)[number];
 export const listingStatuses = ["active", "sold"] as const;
 export const saleStatuses = ["active", "expired", "reissued"] as const;
 export const payoutStatuses = ["pending", "completed"] as const;
@@ -99,6 +101,10 @@ export const sellers = pgTable(
     profileImagePathname: text("profile_image_pathname"),
     /** Hex colour behind the seller's public pages; null renders the default. */
     pageBackground: text("page_background"),
+    /** Image covering the colour behind the seller's public pages. */
+    pageBackgroundImagePathname: text("page_background_image_pathname"),
+    /** Forces the page text palette; null picks one from the background colour. */
+    pageTextTone: text("page_text_tone").$type<TextTone>(),
     /** One URL per line, shown as plain links under the seller's catalogue. */
     socialLinks: text("social_links"),
     publicProfileEnabled: boolean("public_profile_enabled").notNull().default(true),
