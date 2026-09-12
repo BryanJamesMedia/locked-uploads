@@ -32,7 +32,7 @@ function ResetForm() {
       setPending(false);
       return;
     }
-    router.push("/login");
+    router.push("/login?reset=1");
   }
 
   return (

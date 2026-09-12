@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth-client";
+
+function ResetNotice() {
+  if (useSearchParams().get("reset") !== "1") return null;
+  return (
+    <p role="status" className="mb-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
+      Your password has been updated. Sign in with your new password.
+    </p>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,6 +43,9 @@ export default function LoginPage() {
   return (
     <Card className="p-6">
       <h1 className="mb-4 text-xl font-semibold text-slate-900">Sign in</h1>
+      <Suspense fallback={null}>
+        <ResetNotice />
+      </Suspense>
       <form onSubmit={onSubmit}>
         <Field label="Email" htmlFor="email">
           <Input id="email" name="email" type="email" autoComplete="email" required />
