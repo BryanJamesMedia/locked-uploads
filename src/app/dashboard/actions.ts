@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "@/db";
-import { fileDownloads, listings, notifications, payouts, sellers } from "@/db/schema";
+import { fileDownloads, listings, notifications, payouts, sellers, textTones } from "@/db/schema";
 import { sales } from "@/db/schema";
 import { DEFAULT_PAGE_BACKGROUND, normalizeHexColor } from "@/lib/colors";
 import { sendPayoutEmail, sendReissueEmail } from "@/lib/email";
@@ -96,6 +96,8 @@ export async function saveProfile(formData: FormData): Promise<ActionResult> {
     .replace(/[^a-z0-9-]/g, "-");
   const backgroundInput = String(formData.get("pageBackground") ?? "").trim();
   const pageBackground = backgroundInput ? normalizeHexColor(backgroundInput) : null;
+  const toneInput = String(formData.get("pageTextTone") ?? "");
+  const pageTextTone = textTones.find((tone) => tone === toneInput) ?? null;
   if (name.length < 2) return { ok: false, error: "Enter your display name." };
   if (handle.length < 3) return { ok: false, error: "Handle must be at least 3 characters." };
   if (backgroundInput && !pageBackground) {
@@ -126,6 +128,7 @@ export async function saveProfile(formData: FormData): Promise<ActionResult> {
       bio: bio || null,
       handle,
       pageBackground: pageBackground === DEFAULT_PAGE_BACKGROUND ? null : pageBackground,
+      pageTextTone,
       socialLinks: links.length > 0 ? links.join("\n") : null,
     })
     .where(eq(sellers.id, seller.id));
