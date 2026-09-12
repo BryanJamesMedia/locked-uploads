@@ -7,7 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { files, listings, linkTypes, notifications, visibilities } from "@/db/schema";
 import { sendListingPublishedEmail } from "@/lib/email";
-import { MAX_SALE_LIMIT } from "@/lib/listings";
+import { MAX_SALE_LIMIT, soldOut } from "@/lib/listings";
 import { requireSeller } from "@/lib/session";
 import { deleteObjects } from "@/lib/storage";
 import { canCreateListing, ensureListingPreviews, refreshListingAggregates } from "@/lib/uploads";
@@ -102,12 +102,15 @@ export async function saveListingDetails(
   if (linkType === "limited" && saleLimit === null) {
     return { ok: false, error: "Set how many buyers the limited link allows." };
   }
-  if (saleLimit !== null && saleLimit <= listing.salesCount) {
+  // Only a limit the seller is actually changing has to clear the sales made.
+  if (saleLimit !== null && saleLimit !== listing.saleLimit && saleLimit <= listing.salesCount) {
     return {
       ok: false,
       error: `This listing already has ${listing.salesCount} sales — set a higher limit.`,
     };
   }
+
+  const closed = soldOut(linkType, saleLimit, listing.salesCount);
 
   await db
     .update(listings)
@@ -117,7 +120,9 @@ export async function saveListingDetails(
       price: price.toFixed(2),
       linkType,
       saleLimit,
-      visibility,
+      // Raising the cap on a sold-out link puts it back on sale.
+      status: closed ? "sold" : "active",
+      visibility: closed ? "private" : visibility,
       slug: listing.draft ? await uniqueSlug(title) : listing.slug,
       updatedAt: new Date(),
     })
