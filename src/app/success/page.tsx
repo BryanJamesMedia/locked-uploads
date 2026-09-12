@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { sales } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { fulfilSessionById } from "@/lib/checkout";
 
 export default async function SuccessPage(props: PageProps<"/success">) {
   const params = await props.searchParams;
@@ -18,6 +19,7 @@ export default async function SuccessPage(props: PageProps<"/success">) {
       .where(eq(sales.stripeSessionId, sessionId))
       .limit(1);
     token = sale?.downloadToken ?? null;
+    if (!token) token = (await fulfilSessionById(sessionId))?.token ?? null;
   }
 
   return (
