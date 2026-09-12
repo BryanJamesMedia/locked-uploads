@@ -15,20 +15,27 @@ export default function ForgotPasswordPage() {
     event.preventDefault();
     setPending(true);
     const form = new FormData(event.currentTarget);
-    await authClient.requestPasswordReset({
-      email: String(form.get("email")),
-      redirectTo: "/reset-password",
-    });
-    setPending(false);
-    setSent(true);
+    try {
+      await authClient.requestPasswordReset({
+        email: String(form.get("email")),
+        redirectTo: "/reset-password",
+      });
+    } finally {
+      setPending(false);
+      setSent(true);
+    }
   }
 
   return (
     <Card className="p-6">
       <h1 className="mb-4 text-xl font-semibold text-slate-900">Reset your password</h1>
       {sent ? (
-        <p className="text-sm text-slate-600">
-          If an account exists for that address, a reset link is on its way.
+        <p
+          role="status"
+          className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900"
+        >
+          If your email is registered to an account you will receive an email to
+          reset your password.
         </p>
       ) : (
         <form onSubmit={onSubmit}>
