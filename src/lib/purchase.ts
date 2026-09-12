@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import { db } from "@/db";
 import { listings, notifications, sales, sellers } from "@/db/schema";
 import { sendPurchaseEmail, sendSaleEmail } from "./email";
+import { soldOut } from "./listings";
 import { TOKEN_TTL_MS } from "./plans";
 import { appUrl, formatCurrency } from "./utils";
 
@@ -63,7 +64,7 @@ export async function completePurchase(args: {
     .update(listings)
     .set({
       salesCount: sql`${listings.salesCount} + 1`,
-      ...(listing.linkType === "single_use"
+      ...(soldOut(listing.linkType, listing.saleLimit, listing.salesCount + 1)
         ? { status: "sold" as const, visibility: "private" as const }
         : {}),
     })

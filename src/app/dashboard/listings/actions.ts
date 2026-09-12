@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { files, listings, linkTypes, notifications, visibilities } from "@/db/schema";
 import { sendListingPublishedEmail } from "@/lib/email";
+import { MAX_SALE_LIMIT, soldOut } from "@/lib/listings";
 import { requireSeller } from "@/lib/session";
 import { deleteObjects } from "@/lib/storage";
 import { canCreateListing, ensureListingPreviews, refreshListingAggregates } from "@/lib/uploads";
@@ -17,6 +18,7 @@ const detailsSchema = z.object({
   description: z.string().trim().max(2000).optional().or(z.literal("")),
   price: z.coerce.number().min(0.5, "Price must be at least $0.50").max(100000),
   linkType: z.enum(linkTypes),
+  saleLimit: z.coerce.number().int().min(1).max(MAX_SALE_LIMIT).optional().nullable(),
   visibility: z.enum(visibilities),
 });
 
@@ -96,6 +98,19 @@ export async function saveListingDetails(
   const parsed = detailsSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
   const { title, description, price, linkType, visibility } = parsed.data;
+  const saleLimit = linkType === "limited" ? (parsed.data.saleLimit ?? null) : null;
+  if (linkType === "limited" && saleLimit === null) {
+    return { ok: false, error: "Set how many buyers the limited link allows." };
+  }
+  // Only a limit the seller is actually changing has to clear the sales made.
+  if (saleLimit !== null && saleLimit !== listing.saleLimit && saleLimit <= listing.salesCount) {
+    return {
+      ok: false,
+      error: `This listing already has ${listing.salesCount} sales — set a higher limit.`,
+    };
+  }
+
+  const closed = soldOut(linkType, saleLimit, listing.salesCount);
 
   await db
     .update(listings)
@@ -104,7 +119,10 @@ export async function saveListingDetails(
       description: description || null,
       price: price.toFixed(2),
       linkType,
-      visibility,
+      saleLimit,
+      // Raising the cap on a sold-out link puts it back on sale.
+      status: closed ? "sold" : "active",
+      visibility: closed ? "private" : visibility,
       slug: listing.draft ? await uniqueSlug(title) : listing.slug,
       updatedAt: new Date(),
     })
@@ -180,7 +198,7 @@ export async function toggleListingVisibility(listingId: string): Promise<Action
   const seller = await requireSeller();
   const listing = await requireOwnedListing(listingId, seller.id);
   if (listing.status === "sold") {
-    return { ok: false, error: "Sold single-use listings stay private." };
+    return { ok: false, error: "Listings that have sold out stay private." };
   }
 
   await db

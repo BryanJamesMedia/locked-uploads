@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { listings, sellers } from "@/db/schema";
+import { soldOut } from "@/lib/listings";
 import { platformFeeCents } from "@/lib/plans";
 import { completePurchase } from "@/lib/purchase";
 import { isStripeConfigured, stripe } from "@/lib/stripe";
@@ -34,7 +35,14 @@ export async function startCheckout(
   if (!row) return { error: "This listing is no longer available." };
 
   const { listing, seller } = row;
-  if (listing.status === "sold") return { error: "This listing has already been sold." };
+  if (listing.status === "sold" || soldOut(listing.linkType, listing.saleLimit, listing.salesCount)) {
+    return {
+      error:
+        listing.linkType === "limited"
+          ? "This limited listing has sold out."
+          : "This listing has already been sold.",
+    };
+  }
 
   const amountCents = Math.round(Number(listing.price) * 100);
   const feeCents = platformFeeCents(amountCents, seller.plan);

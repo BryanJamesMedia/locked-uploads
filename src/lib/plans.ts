@@ -56,8 +56,8 @@ export function platformFeeCents(amountCents: number, plan: Plan): number {
   return Math.min(amountCents, Math.max(fee, MINIMUM_PLATFORM_FEE_CENTS));
 }
 
-export const DOWNLOADS_PER_FILE = 3;
-export const ZIP_DOWNLOADS_PER_SALE = 3;
+export const DOWNLOADS_PER_FILE = 2;
+export const ZIP_DOWNLOADS_PER_SALE = 2;
 export const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 /** ZIP generation is disabled above this listing size. */
 export const ZIP_SIZE_LIMIT_BYTES = 2 * GB;

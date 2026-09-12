@@ -12,6 +12,7 @@ import { CopyLinkButton } from "@/components/copy-link-button";
 import { FileTile } from "@/components/file-tile";
 import type { FileType, Plan } from "@/db/schema";
 import { ACCEPTED_EXTENSIONS, formatBytes } from "@/lib/files";
+import { MAX_SALE_LIMIT, linkTypeLabel } from "@/lib/listings";
 import { PLANS } from "@/lib/plans";
 import { cn, listingPath } from "@/lib/utils";
 import {
@@ -36,7 +37,8 @@ export type WizardListing = {
   title: string;
   description: string | null;
   price: string;
-  linkType: "permanent" | "single_use";
+  linkType: "permanent" | "single_use" | "limited";
+  saleLimit: number | null;
   visibility: "public" | "private";
   slug: string;
   draft: boolean;
@@ -78,6 +80,7 @@ export function ListingWizard({
   const [linkType, setLinkType] = useState<WizardListing["linkType"]>(
     initialListing?.linkType ?? "permanent",
   );
+  const [saleLimit, setSaleLimit] = useState(String(initialListing?.saleLimit ?? 10));
   const [visibility, setVisibility] = useState<WizardListing["visibility"]>(
     initialListing?.visibility ?? "public",
   );
@@ -176,6 +179,7 @@ export function ListingWizard({
       description,
       price,
       linkType,
+      saleLimit: linkType === "limited" ? saleLimit : null,
       visibility,
     });
     setBusy(false);
@@ -195,6 +199,7 @@ export function ListingWizard({
       description,
       price,
       linkType,
+      saleLimit: linkType === "limited" ? saleLimit : null,
       visibility,
     });
     if (!saved.ok) {
@@ -383,9 +388,32 @@ export function ListingWizard({
                     label: "Single-use",
                     description: "Sells once, then turns private and is marked sold.",
                   },
+                  {
+                    value: "limited",
+                    label: "Limited downloads",
+                    description: "Sells to a set number of buyers, then closes automatically.",
+                  },
                 ]}
               />
             </div>
+            {linkType === "limited" ? (
+              <Field
+                label="Buyers allowed"
+                htmlFor="saleLimit"
+                hint={`Between 1 and ${MAX_SALE_LIMIT}. The listing sells out once this many buyers have paid.`}
+              >
+                <Input
+                  id="saleLimit"
+                  type="number"
+                  min="1"
+                  max={MAX_SALE_LIMIT}
+                  step="1"
+                  className="max-w-32"
+                  value={saleLimit}
+                  onChange={(event) => setSaleLimit(event.target.value)}
+                />
+              </Field>
+            ) : null}
             <div>
               <Label>Visibility</Label>
               <Choice
@@ -425,7 +453,10 @@ export function ListingWizard({
             <Row label="Description" value={description || "—"} />
             <Row label="Price" value={`$${Number(price || 0).toFixed(2)}`} />
             <Row label="Files" value={`${files.length} · ${formatBytes(totalBytes)}`} />
-            <Row label="Link type" value={linkType === "permanent" ? "Permanent" : "Single-use"} />
+            <Row
+              label="Link type"
+              value={linkTypeLabel(linkType, linkType === "limited" ? Number(saleLimit) : null)}
+            />
             <Row label="Visibility" value={visibility === "public" ? "Public" : "Private"} />
           </dl>
           <div className="mt-6 flex justify-between">

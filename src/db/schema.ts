@@ -16,7 +16,8 @@ export type Plan = (typeof plans)[number];
 export const fileTypes = ["image", "video", "pdf", "document", "archive"] as const;
 export type FileType = (typeof fileTypes)[number];
 
-export const linkTypes = ["permanent", "single_use"] as const;
+export const linkTypes = ["permanent", "single_use", "limited"] as const;
+export type LinkType = (typeof linkTypes)[number];
 export const visibilities = ["public", "private"] as const;
 export const listingStatuses = ["active", "sold"] as const;
 export const saleStatuses = ["active", "expired", "reissued"] as const;
@@ -126,6 +127,8 @@ export const listings = pgTable(
     description: text("description"),
     price: numeric("price", { precision: 12, scale: 2 }).notNull(),
     linkType: text("link_type").$type<(typeof linkTypes)[number]>().notNull().default("permanent"),
+    /** Buyers allowed on a "limited" link; null for the other link types. */
+    saleLimit: integer("sale_limit"),
     visibility: text("visibility").$type<(typeof visibilities)[number]>().notNull().default("public"),
     status: text("status").$type<(typeof listingStatuses)[number]>().notNull().default("active"),
     /** Listings in the multi-step creation flow are not yet purchasable or listed. */

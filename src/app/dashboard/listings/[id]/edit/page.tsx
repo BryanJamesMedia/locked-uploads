@@ -44,6 +44,7 @@ export default async function EditListingPage(
           description: listing.description,
           price: listing.price,
           linkType: listing.linkType,
+          saleLimit: listing.saleLimit,
           visibility: listing.visibility,
           slug: listing.slug,
           draft: listing.draft,
