@@ -7,6 +7,7 @@ import { BuyForm } from "@/components/buy-form";
 import { FileTile } from "@/components/file-tile";
 import { Card } from "@/components/ui/card";
 import { formatBytes } from "@/lib/files";
+import { soldOut } from "@/lib/listings";
 import { formatCurrency } from "@/lib/utils";
 
 /** The seller segment is the seller's public id; their handle also resolves. */
@@ -45,7 +46,11 @@ export default async function ListingPage(props: PageProps<"/[seller]/[slug]">) 
     .where(eq(files.listingId, listing.id))
     .orderBy(files.sortOrder);
 
-  const sold = listing.status === "sold";
+  const sold = listing.status === "sold" || soldOut(listing.linkType, listing.saleLimit, listing.salesCount);
+  const remaining =
+    listing.linkType === "limited" && listing.saleLimit
+      ? Math.max(0, listing.saleLimit - listing.salesCount)
+      : null;
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
@@ -58,6 +63,13 @@ export default async function ListingPage(props: PageProps<"/[seller]/[slug]">) 
         {listing.fileCount} file{listing.fileCount === 1 ? "" : "s"} ·{" "}
         {formatBytes(listing.totalSizeBytes)}
       </p>
+
+      {remaining !== null ? (
+        <p className="mt-2 text-sm font-medium text-slate-700">
+          Limited to {listing.saleLimit} buyer{listing.saleLimit === 1 ? "" : "s"} · {remaining}{" "}
+          left
+        </p>
+      ) : null}
 
       <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
         {listingFiles.map((file) => (
@@ -75,7 +87,9 @@ export default async function ListingPage(props: PageProps<"/[seller]/[slug]">) 
 
         {sold ? (
           <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
-            This listing has already been sold.
+            {remaining !== null
+              ? "This limited listing has sold out."
+              : "This listing has already been sold."}
           </p>
         ) : (
           <BuyForm slug={listing.slug} price={formatCurrency(listing.price)} />

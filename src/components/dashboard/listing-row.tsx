@@ -10,6 +10,7 @@ import { Badge, Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { listings } from "@/db/schema";
 import { formatBytes } from "@/lib/files";
+import { linkTypeLabel } from "@/lib/listings";
 import { formatCurrency } from "@/lib/utils";
 import {
   deleteListing,
@@ -47,14 +48,14 @@ export function ListingRow({ listing, shareUrl }: { listing: Listing; shareUrl: 
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium text-slate-900">{listing.title}</p>
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
-          <Badge>{listing.linkType === "permanent" ? "Permanent" : "Single-use"}</Badge>
+          <Badge>{linkTypeLabel(listing.linkType, listing.saleLimit)}</Badge>
           <Badge tone={listing.visibility === "public" ? "green" : "slate"}>
             {listing.visibility === "public" ? "Public" : "Private"}
           </Badge>
           {listing.status === "sold" ? <Badge tone="amber">Sold</Badge> : null}
           <span className="text-xs text-slate-500">
-            {listing.fileCount} files · {formatBytes(listing.totalSizeBytes)} · {listing.salesCount}{" "}
-            sales
+            {listing.fileCount} files · {formatBytes(listing.totalSizeBytes)} · {listing.salesCount}
+            {listing.saleLimit ? `/${listing.saleLimit}` : ""} sales
           </span>
         </div>
       </div>
