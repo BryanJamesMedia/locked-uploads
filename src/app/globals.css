@@ -5,6 +5,21 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/*
+ * Brand palette. The neutral ramp is Tailwind's slate (slate-900 is the spec's
+ * ink-900, slate-500 its ink-500), so only the accents are defined here.
+ */
+@theme {
+  --color-brand: #14b8a6;
+  --color-brand-dark: #0f9e8e;
+  --color-brand-soft: #e7f7f1;
+  --color-subtle: #e7ebf0;
+  --color-public-soft: #d9f6e8;
+  --color-public-strong: #15803d;
+  --color-danger-soft: #fee4e2;
+  --color-danger-strong: #e4483c;
+}
+
 body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }

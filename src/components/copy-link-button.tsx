@@ -20,7 +20,8 @@ export function CopyLinkButton({
       }}
     >
       {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-      {copied ? "Copied" : label}
+      {/* An empty label means an icon-only button, which has no room for text. */}
+      {label ? (copied ? "Copied" : label) : null}
     </Button>
   );
 }

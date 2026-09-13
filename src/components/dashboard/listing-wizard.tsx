@@ -243,9 +243,9 @@ export function ListingWizard({
             className={cn(
               "flex-1 rounded-full px-3 py-1 text-center",
               index === step
-                ? "bg-slate-900 text-white"
+                ? "bg-brand text-white"
                 : index < step
-                  ? "bg-slate-200 text-slate-700"
+                  ? "bg-brand-soft text-slate-700"
                   : "bg-slate-100 text-slate-400",
             )}
           >
@@ -502,7 +502,7 @@ function Choice({
             "rounded-xl border p-3 text-left",
             selected === option.value
               ? "border-slate-900 bg-slate-50"
-              : "border-slate-200 hover:border-slate-300",
+              : "border-subtle hover:border-slate-300",
           )}
         >
           <span className="block text-sm font-medium text-slate-900">{option.label}</span>
