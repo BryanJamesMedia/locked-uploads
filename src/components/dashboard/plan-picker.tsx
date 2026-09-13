@@ -31,21 +31,21 @@ export function PlanPicker({ current }: { current: Plan }) {
             </p>
             <ul className="mt-3 space-y-1.5 text-sm text-slate-600">
               <li className="flex gap-2">
-                <Check className="size-4 shrink-0 text-emerald-600" />
+                <Check className="size-4 shrink-0 text-brand" />
                 {(config.feeRate * 100).toFixed(0)}% platform fee
               </li>
               <li className="flex gap-2">
-                <Check className="size-4 shrink-0 text-emerald-600" />
+                <Check className="size-4 shrink-0 text-brand" />
                 {formatBytes(config.storagePerListingBytes)} per listing
               </li>
               <li className="flex gap-2">
-                <Check className="size-4 shrink-0 text-emerald-600" />
+                <Check className="size-4 shrink-0 text-brand" />
                 {config.activeListings === null
                   ? "Unlimited active listings"
                   : `${config.activeListings} active listings`}
               </li>
               <li className="flex gap-2">
-                <Check className="size-4 shrink-0 text-emerald-600" />
+                <Check className="size-4 shrink-0 text-brand" />
                 {config.video ? "Video uploads" : "No video uploads"}
               </li>
             </ul>

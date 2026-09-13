@@ -59,15 +59,16 @@ export function ListingRow({ listing, shareUrl }: { listing: Listing; shareUrl: 
       <div className="flex items-center gap-2 sm:flex-col sm:items-end">
         <p className="font-semibold text-slate-900">{formatCurrency(listing.price)}</p>
         <div className="flex gap-1">
-          <CopyLinkButton url={shareUrl} label="" size="sm" variant="ghost" />
+          <CopyLinkButton url={shareUrl} label="" size="sm" variant="icon" className="w-8 px-0" />
           <Link href={`/dashboard/listings/${listing.id}/edit`}>
-            <Button size="sm" variant="ghost" aria-label="Edit listing">
+            <Button size="sm" variant="icon" className="w-8 px-0" aria-label="Edit listing">
               <Pencil className="size-4" />
             </Button>
           </Link>
           <Button
             size="sm"
-            variant="ghost"
+            variant="icon"
+            className="w-8 px-0"
             disabled={busy || listing.status === "sold"}
             aria-label="Toggle visibility"
             onClick={() => void run(() => toggleListingVisibility(listing.id))}
@@ -80,7 +81,8 @@ export function ListingRow({ listing, shareUrl }: { listing: Listing; shareUrl: 
           </Button>
           <Button
             size="sm"
-            variant="ghost"
+            variant="danger"
+            className="w-8 px-0"
             disabled={busy}
             aria-label="Delete listing"
             onClick={() => {

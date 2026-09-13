@@ -54,7 +54,7 @@ export function FileTile({
           </span>
         </div>
       ) : (
-        <div className="flex aspect-square items-center justify-center rounded-lg border border-slate-200 bg-slate-50">
+        <div className="flex aspect-square items-center justify-center rounded-lg border border-subtle bg-slate-50">
           <Icon className="size-7 text-slate-400" />
         </div>
       )}

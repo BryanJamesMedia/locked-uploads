@@ -247,7 +247,7 @@ export function ProfileForm({
               aria-label="Pick a background colour"
               value={background}
               onChange={(event) => setBackground(event.target.value)}
-              className="h-10 w-12 cursor-pointer rounded-lg border border-slate-200 bg-white p-1"
+              className="h-10 w-12 cursor-pointer rounded-lg border border-subtle bg-white p-1"
             />
             <Input
               id="pageBackground"
@@ -274,7 +274,7 @@ export function ProfileForm({
         <div className="mb-4">
           <Label>Background image</Label>
           <div className="flex items-center gap-4">
-            <div className="h-16 w-28 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
+            <div className="h-16 w-28 shrink-0 overflow-hidden rounded-lg border border-subtle bg-slate-100">
               {backgroundImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -333,7 +333,7 @@ export function ProfileForm({
             id="pageTextTone"
             name="pageTextTone"
             defaultValue={seller.pageTextTone ?? ""}
-            className="h-10 max-w-56 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900"
+            className="h-10 max-w-56 rounded-lg border border-subtle bg-white px-3 text-sm text-slate-900"
           >
             <option value="">Automatic</option>
             <option value="dark">Black text</option>

@@ -3,14 +3,15 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "icon";
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-400",
-  secondary: "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50",
+  primary: "bg-brand text-white hover:bg-brand-dark disabled:bg-slate-300",
+  secondary: "border border-subtle bg-white text-slate-900 hover:bg-slate-50",
   ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-  danger: "bg-red-600 text-white hover:bg-red-500",
+  danger: "bg-danger-soft text-danger-strong hover:bg-danger-soft/70",
+  icon: "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900",
 };
 
 const sizes: Record<Size, string> = {
@@ -32,7 +33,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60",
         variants[variant],
         sizes[size],
         className,

@@ -15,7 +15,7 @@ export function SellerBar({
 }) {
   const identity = (
     <>
-      <span className="size-9 shrink-0 overflow-hidden rounded-full bg-slate-300">
+      <span className="size-9 shrink-0 overflow-hidden rounded-full bg-brand">
         {profileImagePathname ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -24,7 +24,7 @@ export function SellerBar({
             className="size-full object-cover"
           />
         ) : (
-          <span className="flex size-full items-center justify-center text-sm font-semibold text-slate-600">
+          <span className="flex size-full items-center justify-center text-sm font-semibold text-white">
             {name.slice(0, 1).toUpperCase()}
           </span>
         )}
@@ -37,7 +37,7 @@ export function SellerBar({
   );
 
   return (
-    <header className="border-b border-slate-200 bg-slate-100">
+    <header className="border-b border-subtle bg-slate-100">
       <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 py-3">
         {linkToProfile ? (
           <Link href={`/${handle}`} className="flex min-w-0 items-center gap-3">
