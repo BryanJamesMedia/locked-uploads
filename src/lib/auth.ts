@@ -4,7 +4,7 @@ import { nextCookies } from "better-auth/next-js";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { sellers, users, sessions, accounts, verifications } from "@/db/schema";
-import { sendPasswordResetEmail, sendWelcomeEmail } from "./email";
+import { sendNewSignupAdminEmail, sendPasswordResetEmail, sendWelcomeEmail } from "./email";
 import { newSellerPublicId } from "./ids";
 import { slugify } from "./utils";
 
@@ -33,13 +33,18 @@ async function uniquePublicId(): Promise<string> {
   }
 }
 
-export async function provisionSeller(user: { id: string; name: string; email: string }) {
+/** Creates the seller row for a user, returning its handle only when newly created. */
+export async function provisionSeller(user: {
+  id: string;
+  name: string;
+  email: string;
+}): Promise<string | null> {
   const existing = await db
     .select({ id: sellers.id })
     .from(sellers)
     .where(eq(sellers.id, user.id))
     .limit(1);
-  if (existing.length > 0) return;
+  if (existing.length > 0) return null;
 
   const handle = await uniqueHandle(user.name || user.email.split("@")[0]);
   await db.insert(sellers).values({
@@ -49,6 +54,7 @@ export async function provisionSeller(user: { id: string; name: string; email: s
     publicId: await uniquePublicId(),
     email: user.email,
   });
+  return handle;
 }
 
 /** Every host the app is reachable on: configured URLs plus Vercel's generated domains. */
@@ -94,8 +100,11 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (user) => {
-          await provisionSeller(user);
+          const handle = await provisionSeller(user);
           void sendWelcomeEmail(user.email, user.name);
+          if (handle) {
+            void sendNewSignupAdminEmail({ name: user.name, email: user.email, handle });
+          }
         },
       },
     },
