@@ -3,6 +3,8 @@ import { formatCurrency, formatDate } from "./utils";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.EMAIL_FROM ?? "Locked Uploads <onboarding@resend.dev>";
+/** Operator address that receives platform activity notices. */
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "b@lekmedia.com";
 
 /**
  * Email delivery is best-effort: a failure must never break signup, purchase,
@@ -38,6 +40,19 @@ export function sendWelcomeEmail(to: string, name: string) {
     layout(
       `<h1 style="font-size:20px">Welcome, ${name}</h1>
        <p>Your account is ready. Connect Stripe to start accepting payments, then create your first listing and share the link.</p>`,
+    ),
+  );
+}
+
+/** Tells the operator that someone signed up; the new seller never sees this. */
+export function sendNewSignupAdminEmail(args: { name: string; email: string; handle: string }) {
+  return send(
+    ADMIN_EMAIL,
+    `New sign-up: ${args.name}`,
+    layout(
+      `<h1 style="font-size:20px">New sign-up</h1>
+       <p><strong>${args.name}</strong> just created an account.</p>
+       <p style="font-size:14px">Email: ${args.email}<br />Handle: @${args.handle}</p>`,
     ),
   );
 }
